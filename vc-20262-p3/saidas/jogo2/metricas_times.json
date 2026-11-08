@@ -5,20 +5,20 @@
     "0": "esquerda",
     "1": "direita"
   },
-  "quadros_com_bola": 1146,
+  "quadros_com_bola": 2104,
   "quadros_total": 7050,
   "time0": {
-    "posse_pct": 23.1,
-    "passes": 3,
-    "passes_certos": 0,
-    "precisao_pct": 0.0,
-    "distancia_total": 1153.5
+    "posse_pct": 35.1,
+    "passes": 14,
+    "passes_certos": 3,
+    "precisao_pct": 21.4,
+    "distancia_total": 1812.4
   },
   "time1": {
-    "posse_pct": 76.9,
-    "passes": 9,
-    "passes_certos": 8,
-    "precisao_pct": 88.9,
-    "distancia_total": 1432.4
+    "posse_pct": 64.9,
+    "passes": 16,
+    "passes_certos": 13,
+    "precisao_pct": 81.2,
+    "distancia_total": 2158.2
   }
 }
