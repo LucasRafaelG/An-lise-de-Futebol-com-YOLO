@@ -384,6 +384,11 @@ def _linhas_campo() -> list[np.ndarray]:
 def _desenhar(img: np.ndarray, H_campo_img: np.ndarray, linhas: list[np.ndarray], cor) -> None:
     """Desenha polilinhas do campo (metros) na imagem. Cada polilinha é amostrada a cada
     ~0,5 m e só os pontos à frente da câmera (w > 0) são ligados."""
+    # A homografia vale a menos de um fator de escala, que pode ser negativo. Fixamos o
+    # sinal para que o centro da imagem (gramado visível) tenha w > 0.
+    centro = np.linalg.solve(H_campo_img, [img.shape[1] / 2, img.shape[0] / 2, 1.0])
+    if centro[2] < 0:
+        H_campo_img = -H_campo_img
     for lin in linhas:
         pts = [lin[0]]
         for a, b in zip(lin[:-1], lin[1:]):
