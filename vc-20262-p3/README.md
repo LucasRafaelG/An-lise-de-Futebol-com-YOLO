@@ -67,8 +67,11 @@ python remover_trechos.py --saida ../saidas/jogo1 --excluir 0:40-1:00 1:30-1:48 
 
 # 4. Bola e homografia
 python bola_kalman.py --saida ../saidas/jogo1
-python homografia.py calibrar --saida ../saidas/jogo1 --pontos meio_sup,centro,meio_inf,circulo_sup,circulo_inf
-python homografia.py camera   --saida ../saidas/jogo1
+python homografia.py calibrar --saida ../saidas/jogo1 --pontos meio_sup,circulo_sup,circulo_inf,circulo_esq,circulo_dir
+python homografia.py camera   --saida ../saidas/jogo1      # lista os segmentos de câmera
+# calibre também quadros com marcos longe do frame0 e cada segmento lateral depois de um corte
+python homografia.py calibrar --saida ../saidas/jogo1 --quadro 600 --pontos ga_dir_sup,ga_dir_inf,pa_dir_sup,pa_dir_inf
+python homografia.py conferir --saida ../saidas/jogo1      # linhas do campo desenhadas sobre o vídeo
 python homografia.py projetar --saida ../saidas/jogo1
 
 # 5. Métricas e validação
@@ -93,10 +96,15 @@ Abra `frame0.jpg` em qualquer visualizador, anote os pixels (u, v) de ≥ 4 marc
 
 ```json
 {"pixels": [[640, 112], [598, 361], [520, 702], [1180, 230]],
- "marcos": ["meio_sup", "centro", "meio_inf", "ga_dir_sup"]}
+ "marcos": ["meio_sup", "centro", "meio_inf", "ga_dir_sup"],
+ "quadros": [0, 0, 0, 600]}
 ```
 
-Depois rode `python homografia.py calibrar --saida ../saidas/jogo1 --sem-janela`. Os nomes dos marcos estão em `campo.MARCOS`.
+`quadros` diz em que quadro cada pixel foi lido (0 = `frame0.jpg`; omitido = todos no quadro 0). Depois rode `python homografia.py calibrar --saida ../saidas/jogo1 --sem-janela`. Os nomes dos marcos estão em `campo.MARCOS`.
+
+### Câmera, segmentos e calibração
+
+A transmissão corta entre câmeras. `homografia.py camera` divide o trecho em **segmentos** (planos contínuos) e só encadeia o movimento dentro de cada um; os pontos da grama não se repetem depois de um corte, então não dá para ligar segmentos diferentes. Cada quadro clicado (`calibrar --quadro N`) precisa de ≥ 4 marcos e ganha a sua própria homografia; cada quadro do vídeo usa o quadro calibrado mais próximo **do mesmo segmento**. Segmentos sem quadro calibrado (closes, outros ângulos) ficam sem posição em metros. O encadeamento da câmera acumula erro ao longo de um pan (no jogo2, ~2–4 m em 20 s) e uma calibração só com o círculo central erra vários metros perto das áreas: num pan longo, calibre um quadro que mostre o círculo **e** a área, ou um quadro em cada ponta. Confira sempre com `homografia.py conferir`.
 
 ### Sem homografia?
 
@@ -123,6 +131,6 @@ Se a calibração não for possível (câmera muito fechada, sem linhas visívei
 
 - **Quase nenhuma bola detectada:** aumente `--imgsz`, reduza `--conf-bola`, use um modelo maior ou ajustado para futebol.
 - **Times trocados ou misturados:** confira `meta.json → times_bgr`; uniformes parecidos ou goleiros exigem `--k 3` ou outro descritor.
-- **Projeção absurda (jogadores fora do campo):** refaça a calibração com marcos bem espalhados; verifique cortes de câmera em `camera_cortes.json`.
+- **Projeção absurda (jogadores fora do campo):** rode `homografia.py conferir`; refaça a calibração com marcos bem espalhados e calibre os segmentos listados por `camera` (`camera_cortes.json`).
 - **Direção de ataque errada** (superfície de eXP "espelhada"): a heurística usa os jogadores mais extremos de cada time e erra se o goleiro for classificado no time errado. Force com `metricas.py --ataque-time0 direita` (ou `esquerda`) e rode o `xpass.py` de novo.
 - **Nenhum passe:** revise `--raio-posse` e a cobertura da bola; confira `posse_por_quadro.csv`.

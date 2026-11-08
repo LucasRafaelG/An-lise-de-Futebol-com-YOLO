@@ -45,28 +45,23 @@ You are running a university project end to end on this machine. Do every step y
 3. Run `python vc-20262-p3/bola_kalman.py --saida <run>` and report its four printed numbers.
 4. Commit.
 
-## 6. Calibration (HUMAN STEP: STOP here)
+## 6. First calibration on frame0 (HUMAN STEP: STOP here)
 1. Choose 5 or more well-spread, non-collinear landmarks visible in frame0.jpg. Give approximate pixel positions for each, and the exact command:
    `python vc-20262-p3/homografia.py calibrar --saida <run> --pontos name1,name2,...`
    A window opens: click the landmarks in the listed order; `u` undoes the last click, `q` finishes. Explain "sup/inf" (top/bottom touchline in the image) and "esq/dir" (left/right as seen from the main camera).
 2. After the human confirms: read calibracao.json (per-point error in metres) and look at calibracao_grade.jpg (the 5 m grid must follow the pitch lines). The code fits by least squares when there are fewer than 8 points (RANSAC with 5 points would just drop one good click). If the grid is off, ask the human to redo the clicks; `calibrar --sem-janela` recomputes from saved clicks without the window.
 3. Commit.
 
-## 7. Camera motion (known problem: verify before trusting)
-1. History: the original `homografia.py camera` chained per-frame homographies and produced garbage. On this project, after about 30 s the image centre of every frame mapped to the same point (degenerate matrices), and on match failure it fell back to the identity. A fix was being developed. Check the current homografia.py: the fix is present if there is a `_plausivel` function, invalid frames are stored as NaN, and projetar skips NaN frames. If it is missing, implement this spec:
-   a. `_plausivel(M, w, h)`: M finite; the image corners mapped by M form a convex quadrilateral with the SAME orientation (signed area > 0, which rejects mirrored matrices); area ratio between 0.3 and 3.5.
-   b. Accept a match when inliers >= floor AND `_plausivel`. Floors: 40 against the keyframe, 20 against recent frames, 40 against the keyframe bank. Do NOT add an inlier-ratio rule: a 0.5 ratio cut rejected clean 234-inlier matches and stranded the chain.
-   c. References, tried in order: the current keyframe; then the last 6 valid frames, newest first (a deque), and a recent frame that matches becomes the new keyframe; then, every 3rd consecutive failure, a bank of up to 60 old keyframes spaced at least 15 frames apart (frame 0 always kept), to reconnect after a cut.
-   d. A frame that matches nothing gets G = NaN (invalid); never the identity. Normalize every accepted G by G[2,2].
-   e. projetar skips frames whose G is not finite (positions in metres stay NaN).
-   f. Report the number of keyframes, the invalid % and the invalid stretches (>= 0.5 s) in seconds, and save them in camera_cortes.json next to the detected cuts.
-2. Run: `python vc-20262-p3/homografia.py camera --saida <run>` (about 4 to 12 min).
-3. Sanity check, always. Divide each valid G by G[2,2] and map the image centre (640, 360) to frame 0. For each 10 s window, print the valid frame count, the x/y range and the largest jump between consecutive valid frames. Healthy means a smooth pan, not constant, not absurd. Invalid frames should sit around detected cuts and removed stretches.
-4. If it is unhealthy: STOP, report the numbers, and propose one of: (a) a targeted code fix with its reason; (b) split the run into one segment per main-camera stretch, each calibrated separately (more human clicks); (c) `metricas.py --pixels` with no homography, an approximation where xpass.py must not be used and the limitation must be discussed in the report.
-5. If it is healthy: commit homografia.py, camera.npy, camera_cortes.json.
+## 7. Camera segments and per-frame calibration (HUMAN STEP for the clicks)
+1. How homografia.py works now (read its module docstring): `camera` splits the run into SEGMENTS (continuous shots) and chains per-frame homographies only inside a segment (ORB on the CLAHE-enhanced grass mask, every matrix validated by `_plausivel`). Grass features do not repeat across a cut, so segments cannot be linked. Each calibrated frame q gets its own H_q, and a frame uses the nearest calibrated frame of its own segment. Measured on jogo2: the chain drifts ~2-4 m in perspective over a 20 s pan, and a calibration with all landmarks around the centre circle errs by several metres near the boxes. So calibrate frames that show BOTH centre and box landmarks, or one frame at each end of a long pan.
+2. Run `python vc-20262-p3/homografia.py camera --saida <run>` (~7 min for 7050 frames on CPU). It lists the segments of 2 s or more.
+3. Make a contact sheet with one middle frame per listed segment. Classify each as lateral/wide (calibratable) or close-up/other (left without metres, which is correct).
+4. STOP. For each calibratable segment, give the human a frame number where >= 4 non-collinear landmarks are clearly visible (not hidden by players), the landmark names in click order, and the command `python vc-20262-p3/homografia.py calibrar --saida <run> --quadro N --pontos a,b,c,d`. Name landmarks carefully: from the main camera, "sup" is the far touchline (top of the image), and the goal on the right of a pan from the centre is "dir".
+5. After the clicks, run `homografia.py conferir --saida <run>` and look at camera_conferencia.jpg: the drawn pitch lines must sit on the real lines in every panel. A misaligned panel means a bad click or a missing calibrated frame near it. Fix and repeat before projecting.
+6. Commit homografia outputs (camera.npy, camera_cortes.json, calibracao.json, the two check images).
 
 ## 8. Projection and metrics
-1. `python vc-20262-p3/homografia.py projetar --saida <run>`. Report the % of valid players and ball positions.
+1. `python vc-20262-p3/homografia.py projetar --saida <run>`. Report the % of frames with a calibrated camera, the % of valid player and ball positions, and the segments it lists as still uncalibrated.
 2. `python vc-20262-p3/metricas.py --saida <run>`. It skips speed jumps over gaps longer than 3 frames and passes longer than --dur-max, so removed stretches do not create fake passes. Report every printed number. Spot-check plausibility (top speeds under ~36 km/h; distances in a 4-minute clip on the order of a few hundred metres per player). If something is implausible, investigate the cause before going on.
 3. Commit.
 
