@@ -29,6 +29,8 @@ MARCOS = {
     "centro": (COMPRIMENTO / 2, LARGURA / 2),
     "circulo_sup": (COMPRIMENTO / 2, LARGURA / 2 - 9.15),
     "circulo_inf": (COMPRIMENTO / 2, LARGURA / 2 + 9.15),
+    "circulo_esq": (COMPRIMENTO / 2 - 9.15, LARGURA / 2),   # pontas do círculo central, no eixo y do centro
+    "circulo_dir": (COMPRIMENTO / 2 + 9.15, LARGURA / 2),
     "ga_esq_sup_linha": (0.0, _GA_Y0),                   # grande área esquerda × linha de fundo
     "ga_esq_inf_linha": (0.0, _GA_Y1),
     "ga_esq_sup": (16.5, _GA_Y0),                        # quinas da grande área esquerda

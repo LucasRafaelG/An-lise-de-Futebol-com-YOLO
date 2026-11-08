@@ -1,0 +1,44 @@
+{
+  "video": "vc-20262-p3\\videos\\REAL MADRID 3X1 PSG _ JOGO COMPLETO _ OITAVAS DE FINAL DA CHAMPIONS 2017_18_clip.mp4",
+  "modelo": "yolov8m.pt",
+  "device": "cpu",
+  "fps": 30.0,
+  "largura": 1280,
+  "altura": 720,
+  "n_frames": 7050,
+  "inicio_s": 5.0,
+  "imgsz": 1280,
+  "conf": 0.3,
+  "conf_bola": 0.1,
+  "fps_processamento": 0.6825232410459334,
+  "times_bgr": {
+    "0": [
+      124,
+      117,
+      91
+    ],
+    "1": [
+      186,
+      218,
+      200
+    ]
+  },
+  "trechos_excluidos_s": [
+    [
+      35.0,
+      55.0
+    ],
+    [
+      85.0,
+      103.0
+    ],
+    [
+      120.0,
+      134.0
+    ],
+    [
+      205.0,
+      218.0
+    ]
+  ]
+}

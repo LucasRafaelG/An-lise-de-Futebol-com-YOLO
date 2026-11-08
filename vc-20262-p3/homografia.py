@@ -95,7 +95,10 @@ def calibrar(pasta: Path, marcos: list[str] | None, sem_janela: bool):
 
     src = np.array(pixels, dtype=np.float64)
     dst = np.array([MARCOS[m] for m in marcos], dtype=np.float64)
-    H0, _ = cv2.findHomography(src, dst, cv2.RANSAC if len(src) > 4 else 0, 1.0)
+    # RANSAC só faz sentido com pontos de sobra: o modelo mínimo tem 4 pontos e sempre os
+    # ajusta com erro 0, então com 5-7 cliques ele só descartaria o pior. Abaixo disso,
+    # mínimos quadrados usam todos os cliques.
+    H0, _ = cv2.findHomography(src, dst, cv2.RANSAC if len(src) >= 8 else 0, 1.0)
 
     # Erro de reprojeção: quão bem H0 leva cada clique ao seu marco (em metros)
     erro = np.linalg.norm(aplicar_h(H0, src) - dst, axis=1)
