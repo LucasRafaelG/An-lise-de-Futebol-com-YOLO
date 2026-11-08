@@ -1,0 +1,16 @@
+# environment and caches
+venv/
+__pycache__/
+*.pyc
+.env
+
+# regenerable / too large for GitHub (README: do not version the video)
+vc-20262-p3/videos/
+vc-20262-p3/saidas/
+*.pt
+
+# professor's original repo metadata (parked, see note in chat)
+vc-20262-p3/.git.professor/
+
+# third-party PDFs (papers and course handout)
+*.pdf
