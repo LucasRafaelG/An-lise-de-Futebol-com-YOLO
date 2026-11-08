@@ -62,6 +62,9 @@ python baixar_video.py "https://www.youtube.com/watch?v=VIDEO_ID" --inicio 12 --
 # 2–3. Detecção + rastreamento + times (teste antes com 30 s: --inicio 0 --fim 0.5)
 python detectar_rastrear.py --video "../dados/videos/<titulo>_clip.mp4" --saida ../saidas/jogo1 --modelo yolov8m.pt
 
+# 3b. (opcional) Remover replays/closes do tracks.csv; o original fica em tracks_completo.csv
+python remover_trechos.py --saida ../saidas/jogo1 --excluir 0:40-1:00 1:30-1:48 2:05-2:19 3:30-3:43
+
 # 4. Bola e homografia
 python bola_kalman.py --saida ../saidas/jogo1
 python homografia.py calibrar --saida ../saidas/jogo1 --pontos meio_sup,centro,meio_inf,circulo_sup,circulo_inf
